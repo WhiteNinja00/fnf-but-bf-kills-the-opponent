@@ -325,6 +325,9 @@ class PlayState extends MusicBeatState
 	// stores the last combo score objects in an array
 	public static var lastScore:Array<FlxSprite> = [];
 
+	var dead = false;
+	//bf done killed everyone
+
 	override public function create()
 	{
 		//trace('Playback Rate: ' + playbackRate);
@@ -1139,6 +1142,14 @@ class PlayState extends MusicBeatState
 		scoreTxt.visible = !ClientPrefs.hideHud;
 		add(scoreTxt);
 
+		var killTxt = new FlxText(0, timeBarBG.y + 55, FlxG.width, "Press SPACE to kill the opponent", 20);
+		killTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		killTxt.scrollFactor.set();
+		killTxt.screenCenter(X);
+		killTxt.borderSize = 1.25;
+		killTxt.visible = !ClientPrefs.hideHud;
+		add(killTxt);
+
 		botplayTxt = new FlxText(400, timeBarBG.y + 55, FlxG.width - 800, "BOTPLAY", 32);
 		botplayTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		botplayTxt.scrollFactor.set();
@@ -1161,6 +1172,7 @@ class PlayState extends MusicBeatState
 		timeBar.cameras = [camHUD];
 		timeBarBG.cameras = [camHUD];
 		timeTxt.cameras = [camHUD];
+		killTxt.cameras = [camHUD];
 		doof.cameras = [camHUD];
 
 		// if (SONG.song == 'South')
@@ -2815,6 +2827,11 @@ class PlayState extends MusicBeatState
 
 	override public function update(elapsed:Float)
 	{
+		if(FlxG.keys.justPressed.SPACE) {
+			dad.visible = false;
+			iconP2.visible = false;
+			dead = true;
+		}
 		/*if (FlxG.keys.justPressed.NINE)
 		{
 			iconP1.swapOldIcon();
@@ -4571,8 +4588,23 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if (SONG.needsVoices)
-			vocals.volume = 1;
+		if(SONG.song == 'Monster' || SONG.song == 'Winter Horrorland') {
+			//this mf wont die
+			if(dead) {
+				FlxG.sound.music.volume = 0;
+			}
+		} else {
+			if(dead) {
+				if (SONG.needsVoices) {
+					vocals.volume = 0;
+				} else {
+					vocals.volume = 0;
+					FlxG.sound.music.volume = 0;
+				}
+			} else if(SONG.needsVoices) {
+				vocals.volume = 1;
+			}
+		}
 
 		var time:Float = 0.15;
 		if(note.isSustainNote && !note.animation.curAnim.name.endsWith('end')) {
@@ -4683,6 +4715,7 @@ class PlayState extends MusicBeatState
 				}
 			}
 			note.wasGoodHit = true;
+			FlxG.sound.music.volume = 1;
 			vocals.volume = 1;
 
 			var isSus:Bool = note.isSustainNote; //GET OUT OF MY HEAD, GET OUT OF MY HEAD, GET OUT OF MY HEAD
@@ -4991,6 +5024,8 @@ class PlayState extends MusicBeatState
 		}
 		if (curBeat % dad.danceEveryNumBeats == 0 && dad.animation.curAnim != null && !dad.animation.curAnim.name.startsWith('sing') && !dad.stunned)
 		{
+			FlxG.sound.music.volume = 1;
+			vocals.volume = 1;
 			dad.dance();
 		}
 
